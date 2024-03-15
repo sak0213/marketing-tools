@@ -1,4 +1,4 @@
-from cred import tt_token, pg_password
+from cred import pg_password
 from config import pg_name, pg_user, pg_host, pg_port, base_url, version
 import psycopg2
 import json
@@ -12,10 +12,6 @@ job_manager_insert_sql = """
         (account_id, report_id, query_range, report_scope, report_status) values
         (%s, %s, %s, %s, %s)
         """
-
-header = {
-    "Access-Token":tt_token
-}
 
 params = {
     'advertiser_id': 'null',
