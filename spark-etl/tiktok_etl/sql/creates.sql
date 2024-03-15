@@ -149,3 +149,11 @@ create table if not exists tiktok_staging.query_data (
     ,staging_status varchar(50)
 	,initial_insert timestamp not null default (now() at time zone 'utc')
 );
+
+
+create table if not exists tiktok_staging.relation_manager (
+    account_id bigint not null
+    ,campaign_id bigint not null
+    ,adgroup_id bigint not null
+    ,ad_id bigint not null
+);
