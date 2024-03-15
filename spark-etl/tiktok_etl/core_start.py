@@ -1,9 +1,7 @@
-import requests
 from cred import tt_token, pg_name, pg_user, pg_host, pg_password, pg_port, base_url, version
 import psycopg2
 import json
 import datetime as dt
-import traceback
 
 conn = psycopg2.connect(dbname=pg_name, user =pg_user, host=pg_host, password=pg_password, port =pg_port)
 cur = conn.cursor()
@@ -206,7 +204,7 @@ def add_to_job_manager(orchestrator_row):
     sql = """insert into tiktok_staging.job_manager 
             (account_id, report_id, query_range, report_scope, report_status)
             values (%s, '000', %s, %s, 'Job Created')"""
-    # we're adding advertiser id, blank, whole row, level, blank
+
     cur.execute(sql, (orchestrator_row['params']['advertiser_id'], json.dumps(orchestrator_row), orchestrator_row['level']))
 
 def build_api_calls():
