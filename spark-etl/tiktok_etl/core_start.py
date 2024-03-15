@@ -1,4 +1,5 @@
-from cred import tt_token, pg_name, pg_user, pg_host, pg_password, pg_port, base_url, version
+from cred import tt_token, pg_password
+from config import pg_name, pg_user, pg_host, pg_port, base_url, version
 import psycopg2
 import json
 import datetime as dt
