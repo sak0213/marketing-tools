@@ -9,7 +9,7 @@ conn = psycopg2.connect(dbname=pg_name, user =pg_user, host=pg_host, password=pg
 cur = conn.cursor()
 
 job_fetch_sql = """
-select id, account_id, query_range from tiktok_staging.job_manager
+select id, account_id, query_range, report_scope from tiktok_staging.job_manager
 where report_status = 'Job Created'
 """
 
@@ -28,7 +28,7 @@ def fetch_call_list():
     call_list = []
 
     for row in cur.fetchall():
-        call_list.append({'id':row[0], 'account_id':row[1], 'query':row[2]})
+        call_list.append({'id':row[0], 'account_id':row[1], 'query':row[2], 'level':row[3]})
 
     return call_list
 
@@ -39,18 +39,18 @@ def initiate_call(call_row):
     r = requests.get(url=query['url'], headers={"Access-Token":tt_token}, json=query['params'])
     return r.json()
 
-def insert_data(data):
-    # push newly minted response to query data table
-    pass
+def insert_data(data, act_id, level, rpt_id):
+    cur.execute(query_data_insert, (act_id, json.dumps(data), rpt_id, level, 'loaded'))
 
 def update_manager(call_row):
-    # take the ID from call row and update job manager
-    pass
+    cur.execute(update_job_manager_sql, (call_row['id'],))
 
-def run_it_all():
-    # for row in fetch call list:
-    #   a = initiate_call
-    #   insert_ddata(a)
-    #   update manager
-    # done!
-    pass
+def core_retrieve():
+    for row in fetch_call_list():
+        insert_data(initiate_call(row), row['account_id'], row['level'], row['id'])
+        update_manager(row)
+        conn.commit()
+
+
+if __name__== "__main__":
+    core_retrieve()

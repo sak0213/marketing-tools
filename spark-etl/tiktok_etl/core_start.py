@@ -39,7 +39,7 @@ def init_builder():
     """
     cur.execute(initial_status_pull)
     for row in cur.fetchall():
-        builder.append({'act_id':row[0], 'key_update':row[1].strftime('%Y-%m-%d'), 'fact_update':row[2].strftime('%Y-%m-%d'), 'ad_count':row[3], 'name':row[4]})
+        builder.append({'act_id':str(row[0]), 'key_update':row[1].strftime('%Y-%m-%d'), 'fact_update':row[2].strftime('%Y-%m-%d'), 'ad_count':row[3], 'name':row[4]})
 
     return builder
 
