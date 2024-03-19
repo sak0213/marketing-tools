@@ -164,7 +164,7 @@ def generate_orchestrator(builder_entry, need_single_day=False):
     orchestrator.append(keys_adgroup_call)
     orchestrator.append(keys_ad_call)
 
-    if builder_entry['fact_update'] >= str(dt.date.today()):
+    if builder_entry['fact_update'] >= str(dt.date.today()+dt.timedelta(days=-1)):
         print(f"Fact data is up to date for {builder_entry['act_id']}")
     
         return orchestrator
