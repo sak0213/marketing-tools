@@ -15,7 +15,9 @@ job_manager_insert_sql = """
 
 params = {
     'advertiser_id': 'null',
-    'fields': []
+    'fields': [],
+    'page_size':500
+
     }
 
 def init_api_url():
@@ -35,8 +37,9 @@ def init_builder():
         left join (
             select account_id, count(*) as ad_count from tiktok.ads group by 1
             ) as ds on ds.account_id = id
-        where status = 'active'
+            where status = 'active
     """
+
     cur.execute(initial_status_pull)
     for row in cur.fetchall():
         builder.append({'act_id':str(row[0]), 'key_update':row[1].strftime('%Y-%m-%d'), 'fact_update':row[2].strftime('%Y-%m-%d'), 'ad_count':row[3], 'name':row[4]})
@@ -54,8 +57,7 @@ def generate_timeframes(start, end = str(dt.date.today())):
     
     return time_range_list
 
-def generate_orchestrator(builder_entry, need_single_day=False):
-
+def generate_orchestrator(builder_entry, need_single_day=False, is_key_only=False):
     orchestrator = []
 
     field_keys_campaigns = [
@@ -163,38 +165,44 @@ def generate_orchestrator(builder_entry, need_single_day=False):
     orchestrator.append(keys_campaign_call)
     orchestrator.append(keys_adgroup_call)
     orchestrator.append(keys_ad_call)
-
-    if builder_entry['fact_update'] >= str(dt.date.today()+dt.timedelta(days=-1)):
-        print(f"Fact data is up to date for {builder_entry['act_id']}")
     
+    if is_key_only == True:
+
         return orchestrator
 
-    elif builder_entry['fact_update'] < str(dt.date.today()):
+    else:
 
-        update_day_range_count = dt.datetime.strptime(str(dt.date.today()), '%Y-%m-%d') - dt.datetime.strptime(builder_entry['fact_update'], '%Y-%m-%d')
+        if builder_entry['fact_update'] >= str(dt.date.today()+dt.timedelta(days=-1)):
+            print(f"Fact data is up to date for {builder_entry['act_id']}")
         
-        if update_day_range_count.days >= 30:
-            print('Generating daily fact calls: Date range beyond "stat_time_day" limit (30 days)')
-            need_single_day=True
-        
-        if update_day_range_count.days * builder_entry['ad_count'] >= 1000:
-            print('Generating daily fact calls: High expected result volume')
-            need_single_day=True
-
-        if need_single_day == False:
-            orchestrator.append(fact_ds_call)
-
             return orchestrator
 
-        elif need_single_day == True:
+        elif builder_entry['fact_update'] < str(dt.date.today()):
 
-            for day in generate_timeframes(builder_entry['fact_update']):
-                fact_ds_call['params']['start_date'] = day
-                fact_ds_call['params']['end_date'] = day
+            update_day_range_count = dt.datetime.strptime(str(dt.date.today()), '%Y-%m-%d') - dt.datetime.strptime(builder_entry['fact_update'], '%Y-%m-%d')
+            
+            if update_day_range_count.days >= 30:
+                print('Generating daily fact calls: Date range beyond "stat_time_day" limit (30 days)')
+                need_single_day=True
+            
+            if update_day_range_count.days * builder_entry['ad_count'] >= 1000:
+                print('Generating daily fact calls: High expected result volume')
+                need_single_day=True
 
+            if need_single_day == False:
                 orchestrator.append(fact_ds_call)
 
-            return orchestrator
+                return orchestrator
+
+            elif need_single_day == True:
+
+                for day in generate_timeframes(builder_entry['fact_update']):
+                    fact_ds_call['params']['start_date'] = day
+                    fact_ds_call['params']['end_date'] = day
+
+                    orchestrator.append(fact_ds_call)
+
+                return orchestrator
 
 
 def add_to_job_manager(orchestrator_row):
@@ -205,9 +213,8 @@ def add_to_job_manager(orchestrator_row):
     cur.execute(sql, (orchestrator_row['params']['advertiser_id'], json.dumps(orchestrator_row), orchestrator_row['level']))
 
 def build_api_calls():
-
     for account in init_builder():
-        for row in generate_orchestrator(account):
+        for row in generate_orchestrator(account,need_single_day=False, is_key_only=False):
             add_to_job_manager(row)
         conn.commit()
         print(f"Jobs created for {account['name']}")
