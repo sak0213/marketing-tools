@@ -220,6 +220,13 @@ end;$$;
 
 
 -- aflac proc
+create or replace procedure facebook_prod.aflac_standard()
+language plpgsql
+as $$ begin
+drop table facebook_prod.aflac_standard;
+
+create table facebook_prod.aflac_standard as
+
 select 
 	fds.account_id as account_id
     ,'Meta' as platform
@@ -235,6 +242,7 @@ select
 	,fds.ad_id as ad_id
     ,ad.name as ad_name
 	,fds.date as date
+	,creative.dcm_clicktag as clicktag
 	,coalesce(fds.impressions, 0) as impressions
 	,coalesce(fds.link_clicks, 0) as clicks
 	,coalesce(fds.spend, 0) as spend
@@ -246,12 +254,6 @@ select
     ,coalesce(cast(fda.count_value ->> 'like' as int), 0) as page_like
     ,coalesce(cast(fda.count_value ->> 'onsite_conversion.post_save' as int), 0) as ad_save
 	,coalesce(cast(fda.count_value ->> 'landing_page_view' as int), 0) as landing_page_views
-	,coalesce(cast(fda.count_7dc ->> 'lead' as int), 0) as leads_general_7dc
-	,coalesce(cast(fda.count_7dc ->> 'view_content' as int), 0) as b2c_lead_7dc
-	,coalesce(cast(fda.count_7dc ->> 'complete_registration' as int), 0) as agent_lead_7dc
-	,coalesce(cast(fda.count_1dv ->> 'lead' as int), 0) as leads_general_1dv
-	,coalesce(cast(fda.count_1dv ->> 'view_content' as int), 0) as b2c_lead_1dv
-	,coalesce(cast(fda.count_1dv ->> 'complete_registration' as int), 0) as agent_lead_1dv
 from (
         select 
             fds.account_id
@@ -305,4 +307,13 @@ left join (
             ,id
             ,account_id
         from facebook.ads
-        where account_id in (1300771580704671,868776537476241)) as ad on (ad.account_id, ad.id) = (fds.account_id, fds.ad_id);
+        where account_id in (1300771580704671,868776537476241)) as ad on (ad.account_id, ad.id) = (fds.account_id, fds.ad_id)
+left join (
+		select 
+			dcm_clicktag 
+			,ad_id 
+			,account_id
+		from facebook.ads_creative
+		where account_id in (1300771580704671,868776537476241)) as creative on (creative.account_id, creative.ad_id) = (fds.account_id, fds.ad_id);
+
+end;$$;

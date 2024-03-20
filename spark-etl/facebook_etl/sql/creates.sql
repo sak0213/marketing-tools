@@ -53,6 +53,19 @@ create table if not exists facebook.ads (
     ,constraint fk_ad_act foreign key (account_id) references facebook.accounts(id)
 );
 
+create table if not exists facebook.ads_creative (
+    id bigint not null --creative
+    ,ad_id bigint not null --id
+    ,account_id bigint not null --account_id
+    ,landing_page_url varchar(512) default 'n/a' --conditional link or video link
+    ,dcm_clicktag varchar(512) default 'n/a'--click_tracking_url
+    ,dcm_imptag varchar(512) default 'n/a'--impression_tracking_u
+    ,call_to_action varchar(32) default 'n/a' --link data > call to action
+    ,identity_type varchar(32) default 'n/a' --conditional based on presence of video/share in obj type
+    ,ad_format varchar(32) default 'n/a' --object type
+    ,primary key (id, account_id)
+);
+
 create table if not exists facebook.fact_daily_standard (
     ad_id bigint not null
     ,adgroup_id bigint not null
