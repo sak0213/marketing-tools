@@ -29,8 +29,9 @@ select
     ,coalesce(fds.ad_likes, 0) as ad_like
 	,coalesce(fds.ad_shares, 0) as ad_share
 	,coalesce(fds.ad_comments, 0) as ad_comment
-	,0 as ad_save
 	,coalesce(fds.page_likes, 0) as page_like
+    ,0 as ad_save
+    ,0 as landing_page_views
 
 from (
         select 
@@ -58,7 +59,7 @@ left join (
             ,objective
             ,optimization_goal
         from tiktok.campaigns
-        where account_id in (7174850463932678145,7270655699670073345)) as cmp on cmp.id = fds.campaign_id
+        where account_id in (7174850463932678145,7270655699670073345)) as cmp on (cmp.id, cmp.account_id) = (fds.campaign_id, fds.account_id)
 left join (
         select 
             name
