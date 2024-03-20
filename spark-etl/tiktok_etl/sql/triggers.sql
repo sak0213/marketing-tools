@@ -44,12 +44,11 @@ for each row
 
 create or replace function tiktok.fds_relation_build ()
 	returns trigger as $re_id$ begin
-	update tiktok.fact_daily_standard
+update tiktok.fact_daily_standard fds
 		set adgroup_id = ad.adgroup_id,
 			campaign_id = ad.campaign_id
-	from tiktok.fact_daily_standard as fds
-	left join tiktok.ads as ad
-		on (fds.ad_id, fds.account_id) = (ad.id, ad.account_id);
+	from tiktok.ads as ad
+where fds.ad_id = ad.id and fds.account_id = ad.account_id;
 		return null;
 		end; $re_id$ language plpgsql;
 	
