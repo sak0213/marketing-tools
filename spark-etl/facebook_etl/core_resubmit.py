@@ -3,7 +3,7 @@ from cred import pg_password
 from config import pg_name, pg_user, pg_host, pg_port, base_url, version
 import psycopg2
 import json
-
+import traceback
 
 conn = psycopg2.connect(dbname=pg_name, user =pg_user, host=pg_host, password=pg_password, port =pg_port)
 cur = conn.cursor()
@@ -36,7 +36,12 @@ def build_resubmit_list():
     resub_list = []
     cur.execute(fetch_failed_jobs_sql)
     for row in cur.fetchall():
-        resub_list.append({'job_id':row[0], 'account_id':row[1], 'query_range':eval(row[2]), 'report_scope':row[3]})
+        try:
+            resub_list.append({'job_id':row[0], 'account_id':row[1], 'query_range':eval(row[2]), 'report_scope':row[3]})
+        except NameError as e:
+            false = False
+            resub_list.append({'job_id':row[0], 'account_id':row[1], 'query_range':eval(row[2]), 'report_scope':row[3]})
+
 
     return resub_list
 
