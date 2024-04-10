@@ -1,5 +1,5 @@
 call tiktok_staging.key_standard();
-call tiktok_staging.fact_daily_standard()
+call tiktok_staging.fact_daily_standard();
 
 select report_status, count(*) from tiktok_staging.job_manager group by 1;
 

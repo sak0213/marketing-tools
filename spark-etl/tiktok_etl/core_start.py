@@ -37,7 +37,7 @@ def init_builder():
         left join (
             select account_id, count(*) as ad_count from tiktok.ads group by 1
             ) as ds on ds.account_id = id
-            where status = 'active
+            where status = 'active';
     """
 
     cur.execute(initial_status_pull)

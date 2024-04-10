@@ -1,5 +1,5 @@
-from utilities.core import PostgresConnection
+# import facebook_etl.core_check
 
-session = PostgresConnection()
+# facebook_etl.core_check()
 
-
+# host postgres DB maintenence functions & procs here
