@@ -3,6 +3,7 @@ from cred import fb_token, pg_password
 from config import pg_name, pg_user, pg_host, pg_port, base_url, version
 import psycopg2
 import json
+import traceback
 
 conn = psycopg2.connect(dbname=pg_name, user =pg_user, host=pg_host, password=pg_password, port =pg_port)
 cur = conn.cursor()
@@ -39,9 +40,9 @@ def paginate_reports(report):
             cur.execute(load_response_sql, (report['account_id'], json.dumps(report_response.json()), report['report_id'], report['report_scope'], 'loaded'))
             conn.commit()
         except Exception as e:
+            traceback.print_exc()
             print(e)
-            print(report_response.json())
-            print('Who knows what happened? Error on Job retrieve, py line 44')
+            print(report_response)
             break
 
         try:

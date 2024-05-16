@@ -48,7 +48,11 @@ def build_resubmit_list():
 def submit_request(failed_job):
 
     new_req = requests.post(url = f"{init_api_url()}act_{failed_job['account_id']}/insights", params=failed_job['query_range'])
-    new_job_id = new_req.json()['report_run_id']
+    try:
+        new_job_id = new_req.json()['report_run_id']
+    except(KeyError):
+        print(new_req.json())
+        traceback.print_exc()
     cur.execute(insert_new_request_sql, (failed_job['account_id'], new_job_id, json.dumps(failed_job['query_range']), failed_job['report_scope'], 'Job Posted'))
     cur.execute(update_failed_job_sql, ('Job Resubmitted', failed_job['job_id']))
     conn.commit()

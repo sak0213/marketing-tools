@@ -20,23 +20,26 @@ def init_api_url():
 
     return f'{base_url}/{version}/'
 
-def init_builder():
+def init_builder(client_id = None):
     """
     Initialize orchestrator builder. Pulls from \n
     DB to show account update status
     """
 
     builder = []
-
-    initial_status_pull = "select id ,last_updated_key ,last_update_fact from facebook.accounts where status = 'active'"
+    if client_id == None:
+        initial_status_pull = "select id ,last_updated_key ,last_update_fact from facebook.accounts where status = 'active'"
+    if client_id != None:
+        initial_status_pull = f"select id ,last_updated_key ,last_update_fact from facebook.accounts where client_id = {client_id}"
     cur.execute(initial_status_pull)
     for row in cur.fetchall():
         builder.append({'act_id':row[0], 'key_update':row[1].strftime('%Y-%m-%d'), 'fact_update':row[2].strftime('%Y-%m-%d')})
     return builder
 
-def init_orchestrator(builder):
+def init_orchestrator(builder, fact_only = None):
     for row in builder:
-        build_key_updates(row)
+        if fact_only == None:
+            build_key_updates(row)
         build_fact_updates(row)
     return None
 
@@ -154,8 +157,8 @@ def init_requests():
         print(post_req.text)
         
 
-def core_start():
-    init_orchestrator(init_builder()) #populate orchestrator/ request list
+def core_start(cid = None, fact_o = None):
+    init_orchestrator(init_builder(cid), fact_o) #populate orchestrator/ request list
     print(f'FB Requests Gathered: {len(orchestrator)} requests')
     init_requests()
     print(f'All FB jobs posted from orchestrator at')
@@ -164,3 +167,4 @@ def core_start():
 
 if __name__== "__main__":
     core_start()
+    # core_start(14, 'Yes')
