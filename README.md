@@ -1,4 +1,4 @@
-Repo for holding all ELT code for campaigns/clients.
+Repo for holding all ELT code for campaigns.
 
 Process for each platform:
 1. Query DB for missing data then build series of Jobs
@@ -12,6 +12,7 @@ General setup for each platform:
      Schema & Table creation
      Triggers
      Procedures
-     Any other relevant snippets i use a lot
  - creds.py - DB & API credentials
  - config.py - DB & API settings
+
+ Added Some popular scripts for analysis

@@ -18,4 +18,4 @@ call facebook_staging.clear_queues();
 call facebook_prod.napa_standard();
 call facebook_prod.jameshardie_standard();
 call facebook_prod.aflac_standard();
-
+call facebook_prod.humana_pharm_standard();
