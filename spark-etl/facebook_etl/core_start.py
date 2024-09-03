@@ -156,8 +156,17 @@ def init_requests():
         print(post_req)
         print(post_req.text)
         
+def clear_queues():
 
-def core_start(cid = None, fact_o = None):
+    staging_clear_sql = "call facebook_staging.clear_queues();"
+    cur.execute(staging_clear_sql)
+    conn.commit()
+
+def core_start(cid = None, fact_o = None, clear_queue=True):
+
+    if clear_queue == True:
+        clear_queues()
+
     init_orchestrator(init_builder(cid), fact_o) #populate orchestrator/ request list
     print(f'FB Requests Gathered: {len(orchestrator)} requests')
     init_requests()
