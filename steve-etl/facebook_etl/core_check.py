@@ -31,7 +31,8 @@ def fetch_posted_jobs():
     return jobs
 
 def job_check(job_entry):
-    check_url_call = requests.get(f"{init_api_url()}{job_entry['report_id']}?access_token={fb_token}")
+    full_call_url = f"{init_api_url()}{job_entry['report_id']}?access_token={fb_token}"
+    check_url_call = requests.get(full_call_url)
     try:
         status = check_url_call.json()['async_status']
         if status == 'Job Running':
@@ -45,6 +46,9 @@ def job_check(job_entry):
     except(KeyError):
         print('\n\n-----Job Check Error: API limit likely reached---\n')
         print(check_url_call.json())
+        print(full_call_url)
+        print(f'\n Failed Job details---------')
+        print(job_entry)
         print(eval(check_url_call.headers['x-business-use-case-usage']))
         proceed_input = input("Continue Job Check? y/n")
         if proceed_input == 'y':

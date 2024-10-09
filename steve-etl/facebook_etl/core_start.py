@@ -5,6 +5,7 @@ import psycopg2
 import json
 import datetime as dt
 import traceback
+import sys
 
 conn = psycopg2.connect(dbname=pg_name, user =pg_user, host=pg_host, password=pg_password, port =pg_port)
 cur = conn.cursor()
@@ -28,7 +29,7 @@ def init_builder(client_id = None):
 
     builder = []
     if client_id == None:
-        initial_status_pull = "select id ,last_updated_key ,last_update_fact from facebook.accounts where status = 'active'"
+        initial_status_pull = "select id ,last_updated_key ,last_update_fact from facebook.accounts where status = 'active' and last_update_fact != (CURRENT_DATE - interval '1 day')"
     if client_id != None:
         initial_status_pull = f"select id ,last_updated_key ,last_update_fact from facebook.accounts where client_id = {client_id}"
     cur.execute(initial_status_pull)
@@ -132,6 +133,16 @@ def build_fact_updates(builder_row):
             'filtering': filters
         }})
 
+def log_failed_start(current_job):
+    try:
+        cur.execute(job_manager_insert_sql, (current_job['act'][4:], current_job, json.dumps(current_job['params']), current_job['type'], 'Post Failed'))
+        conn.commit()
+    except:
+        print(current_job)
+        print(traceback.print_exc())
+        print(current_job['params'])
+
+
 def init_requests():
 
     counter = 0
@@ -139,16 +150,25 @@ def init_requests():
     try:
         for job in orchestrator:
             post_req = requests.post(url = f"{init_api_url()}{job['act']}/insights", params=job['params'])
-            job_id = post_req.json()['report_run_id']
-            cur.execute(job_manager_insert_sql, (job['act'][4:], job_id, json.dumps(job['params']), job['type'], 'Job Posted'))
+            
+            try:
+                job_id = post_req.json()['report_run_id']
+                cur.execute(job_manager_insert_sql, (job['act'][4:], job_id, json.dumps(job['params']), job['type'], 'Job Posted'))
+            except KeyError:
+                log_failed_start(job)
+            
             counter += 1
             reset_counter +=1
+
+
+            
 
             if reset_counter >= (len(orchestrator) / 5):
                 print(f'{counter} out of {len(orchestrator)} jobs started')
                 reset_counter = 0
                 conn.commit()
         conn.commit()
+
     except Exception as e:
         print(e)
         traceback.print_exc()
@@ -170,7 +190,7 @@ def core_start(cid = None, fact_o = None, clear_queue=True):
     init_orchestrator(init_builder(cid), fact_o) #populate orchestrator/ request list
     print(f'FB Requests Gathered: {len(orchestrator)} requests')
     init_requests()
-    print(f'All FB jobs posted from orchestrator at')
+    # print(f'All FB jobs posted from orchestrator at')
     cur.close()
     conn.close()
 
